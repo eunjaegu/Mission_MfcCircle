@@ -78,6 +78,9 @@ BEGIN_MESSAGE_MAP(CMissionMFCDlg, CDialogEx)
 	ON_EN_CHANGE(IDC_EDIT_COUNT, &CMissionMFCDlg::OnEnChangeEditCount)
 	ON_STN_CLICKED(IDC_STATIC_IMAGE, &CMissionMFCDlg::OnStnClickedStaticImage)
 	ON_EN_CHANGE(IDC_EDIT_XY, &CMissionMFCDlg::OnEnChangeEditXy)
+	ON_BN_CLICKED(IDC_BTN_Create, &CMissionMFCDlg::OnBnClickedBtnCreate)
+	ON_EN_CHANGE(IDC_EDIT_STARTXY, &CMissionMFCDlg::OnEnChangeEditStartxy)
+	ON_EN_CHANGE(IDC_EDIT_ENDXY, &CMissionMFCDlg::OnEnChangeEditEndxy)
 END_MESSAGE_MAP()
 
 
@@ -167,10 +170,10 @@ HCURSOR CMissionMFCDlg::OnQueryDragIcon()
 }
 
 
-//
+// 랜덤 원 생성
 void CMissionMFCDlg::OnBnClickedBtnDraw()
 {
-	//이미지 크기 설정
+	// 이미지 크기 설정
 	int nWidth = 640;
 	int nHeight = 480;
 	int nBPP = 8;
@@ -183,66 +186,95 @@ void CMissionMFCDlg::OnBnClickedBtnDraw()
 			rgb[i].rgbRed = rgb[i].rgbGreen = rgb[i].rgbBlue = i;
 		m_image.SetColorTable(0, 256, rgb);
 	}
-	
-	// 이미지의 첫 번쨰 포인트를 가져온다.
+
+	// 이미지의 한 행에 필요한 바이트 수 반환
 	int nPitch = m_image.GetPitch();
-	
+
+	// 이미지 픽셀 데이터의 시작 주소를 반환
 	unsigned char* fm = (unsigned char*)m_image.GetBits();
 
+	// 배경을 하얀색으로 초기화
 	memset(fm, 0xff, nWidth * nHeight);
 
-		int nRadius = rand() % 50 + 10; // 10~60 크기 랜덤
-		int nX = rand() % (nWidth - nRadius * 2);
-		int nY = rand() % (nHeight - nRadius * 2);
-		int nGray = rand() % 128; // 회색 음영 랜덤(어두운 계열)
-		
-		drawCircle(fm, nX, nY, nRadius, nGray);
+	// 랜덤 원 생성
+	int nRadius = rand() % 50 + 10; // 10~60 크기 랜덤
+	int nX = rand() % (nWidth - nRadius * 2);
+	int nY = rand() % (nHeight - nRadius * 2);
+	int nGray = rand() % 128; // 회색 음영 랜덤(어두운 계열)
 
-	UpdateDisplay();
+	// 원 그리기
+	drawCircle(fm, nX, nY, nRadius, nGray);
+
+	// 시작 좌표, 원크기, 회색음영 저장
+	m_startX = nX;
+	m_startY = nY;
+	m_radius = nRadius;  
+	m_gray = nGray;      
+
+	// 시작 좌표를 IDC_EDIT_STARTENDXY에 표시
+	CString startEndXY;
+	startEndXY.Format(_T("%d, %d"), m_startX, m_startY); // 시작 좌표만 표시
+	SetDlgItemText(IDC_EDIT_STARTXY, startEndXY);
+
+	// 화면 업데이트
+	UpdateDisplay(); 
+
 }
 
 // Draw한 이미지 저장하기
 void CMissionMFCDlg::OnBnClickedBtnAction()
 
 {
-	// CEdit 컨트롤에서 입력된 값을 가져옴
-	CString strCount;
-	CEdit* pEditCount = (CEdit*)GetDlgItem(IDC_EDIT_COUNT); // CEdit 컨트롤 ID가 IDC_EDIT_COUNT일 경우
-	pEditCount->GetWindowText(strCount); // 텍스트 가져오기
-
-	// 개수 입력 칸 공백 시 메시지 출력
-	if (strCount.IsEmpty()) {
-		AfxMessageBox(_T("아래 빈칸에 숫자를 입력해주세요."));
-		return; 
+	// DRAW 버튼을 클릭 여부 확인
+	if (m_startX == 0 && m_startY == 0) {
+		AfxMessageBox(_T("Draw 버튼을 먼저 눌러주세요."));
+		return;
 	}
 
-	// 입력값 숫자로 변환
-	int m_nCircleCount = _ttoi(strCount); // CString을 int로 변환
+	// 이동 간격 설정
+	int interval = 30; // 픽셀 단위 간격
 
-	// 원의 개수만큼 반복
-	for (int i = 0; i < m_nCircleCount; i++) {
-		// 랜덤 값으로 원의 위치, 크기, 회색 음영 생성
-		int nRadius = rand() % 50 + 10; // 10~60 크기 랜덤
-		int nX = rand() % (m_image.GetWidth() - nRadius * 2);
-		int nY = rand() % (m_image.GetHeight() - nRadius * 2);
-		int nGray = rand() % 128; // 회색 음영 랜덤(어두운계열)
+	// 이동할 새로운 좌표 계산(X,Y좌표 이동)
+	m_startX += interval;
+	m_startY += interval;
 
-		// 원 위치 업데이트 및 화면에 출력
-		UpdateCirclePosition(nX, nY, nRadius, nGray);
+	// 이미지 크기 설정
+	int nWidth = m_image.GetWidth();
+	int nHeight = m_image.GetHeight();
+	int nPitch = m_image.GetPitch();
+	unsigned char* fm = (unsigned char*)m_image.GetBits();
 
-		// 파일 이름 생성(현재 시간)
-		CString strFileName;
-		SYSTEMTIME st;
-		GetLocalTime(&st);
-		strFileName.Format(_T("c:\\image\\save_%04d%02d%02d%02d%02d%02d.bmp"),
-			st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+	// 배경을 하얀색으로 초기화
+	memset(fm, 0xff, nWidth * nHeight);
 
-		// 이미지 저장
-		m_image.Save(strFileName);
+	// 새 위치에 원 그리기
+	drawCircle(fm, m_startX, m_startY, m_radius, m_gray);
 
-		// 원 그리기 후 잠시 대기 (애니메이션 효과)
-		Sleep(1000);
-	}
+	// 새로 그린 원의 종료 좌표를 IDC_EDIT_ENDXY에 표시
+	CString newEndXY;
+	newEndXY.Format(_T("%d, %d"), m_startX, m_startY); // 새로 그린 원의 종료 좌표
+	SetDlgItemText(IDC_EDIT_ENDXY, newEndXY);
+
+	// 새로 그린 원의 종료 좌표를 m_endX, m_endY에 저장
+	m_endX = m_startX;
+	m_endY = m_startY;
+
+	// 파일 이름 생성(현재 시간)
+	CString strFileName;
+	SYSTEMTIME st;
+	GetLocalTime(&st);
+	strFileName.Format(_T("c:\\image\\save_%04d%02d%02d%02d%02d%02d.bmp"),
+		st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+
+	// 이미지 저장
+	m_image.Save(strFileName);
+
+	// 원 그리기 후 대기
+	Sleep(1000);
+
+	// 화면 업데이트
+	UpdateDisplay();
+
 }
 
 // 저장된 이미지 불러오기
@@ -261,7 +293,7 @@ void CMissionMFCDlg::OnBnClickedBtnOpen()
 	UpdateImageDlg(matImage);
 }
 
-// 화면에 이미지 그리기(함수 생성)
+// 화면에 이미지 그리기
 void CMissionMFCDlg::UpdateDisplay()
 {
 	
@@ -474,5 +506,58 @@ void CMissionMFCDlg::UpdateImageDlg(cv::Mat& matImage)
 
 	Invalidate();  // 업데이트된 새로운 이미지 표시
 
+}
+
+void CMissionMFCDlg::OnBnClickedBtnCreate()
+{
+	// CEdit 컨트롤에서 입력된 값을 가져옴
+	CString strCount;
+	CEdit* pEditCount = (CEdit*)GetDlgItem(IDC_EDIT_COUNT); // CEdit 컨트롤 ID가 IDC_EDIT_COUNT일 경우
+	pEditCount->GetWindowText(strCount); // 텍스트 가져오기
+
+	// 개수 입력 칸 공백 시 메시지 출력
+	if (strCount.IsEmpty()) {
+		AfxMessageBox(_T("아래 빈칸에 숫자를 입력해주세요."));
+		return;
+	}
+
+	// 입력값 숫자로 변환
+	int m_nCircleCount = _ttoi(strCount); // CString을 int로 변환
+
+	// 원의 개수만큼 반복
+	for (int i = 0; i < m_nCircleCount; i++) {
+		// 랜덤 값으로 원의 위치, 크기, 회색 음영 생성
+		int nRadius = rand() % 50 + 10; // 10~60 크기 랜덤
+		int nX = rand() % (m_image.GetWidth() - nRadius * 2);
+		int nY = rand() % (m_image.GetHeight() - nRadius * 2);
+		int nGray = rand() % 128; // 회색 음영 랜덤(어두운계열)
+
+		// 원 위치 업데이트 및 화면에 출력
+		UpdateCirclePosition(nX, nY, nRadius, nGray);
+
+		// 파일 이름 생성(현재 시간)
+		CString strFileName;
+		SYSTEMTIME st;
+		GetLocalTime(&st);
+		strFileName.Format(_T("c:\\image\\save_%04d%02d%02d%02d%02d%02d.bmp"),
+			st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+
+		// 이미지 저장
+		m_image.Save(strFileName);
+
+		// 원 그리기 후 잠시 대기 (애니메이션 효과)
+		Sleep(1000);
+	}
+
+}
+
+
+void CMissionMFCDlg::OnEnChangeEditStartxy()
+{
+}
+
+
+void CMissionMFCDlg::OnEnChangeEditEndxy()
+{
 }
 

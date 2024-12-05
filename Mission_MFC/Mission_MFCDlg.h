@@ -17,6 +17,14 @@ private:
 	int centerY;
 	CEdit m_editCoord; 
 	CStatic m_picture_control;
+	int m_startX;
+	int m_startY;
+	int m_x1;
+	int m_y1;
+	int m_endX;
+	int m_endY;
+	int m_radius;
+	int m_gray;
 // Construction
 public:
 	CMissionMFCDlg(CWnd* pParent = nullptr);	// standard constructor
@@ -55,4 +63,7 @@ public:
 	bool LoadImageFile(cv::Mat& matImage);
 	void FindCircleXY(cv::Mat& matImage);
 	void UpdateImageDlg(cv::Mat& matImage);
+	afx_msg void OnBnClickedBtnCreate();
+	afx_msg void OnEnChangeEditStartxy();
+	afx_msg void OnEnChangeEditEndxy();
 };

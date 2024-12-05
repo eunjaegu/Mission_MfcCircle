@@ -5,3 +5,5 @@
 .vs/Mission_MFC/v17/ipch/AutoPCH/a95cd8509bdfe2f7/MFCCIMAGEDLG.ipch filter=lfs diff=lfs merge=lfs -text
 .vs/Mission_MFC/v17/ipch/AutoPCH/bc6603cccc769083/APPMODUL.ipch filter=lfs diff=lfs merge=lfs -text
 x64/Debug/Mission_MFC.pdb filter=lfs diff=lfs merge=lfs -text
+*.pch filter=lfs diff=lfs merge=lfs -text
+*.ipch filter=lfs diff=lfs merge=lfs -text

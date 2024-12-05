@@ -1,1 +1,11 @@
-﻿  Mission_MFC.vcxproj -> C:\Users\kuhj1\source\repos\Mission_MFC\x64\Debug\Mission_MFC.exe
+﻿  Mission_MFCDlg.cpp
+C:\opencv\build\include\opencv2\core.hpp(1743,1): warning C4819: The file contains a character that cannot be represented in the current code page (949). Save the file in Unicode format to prevent data loss
+  (compiling source file '/Mission_MFCDlg.cpp')
+  
+C:\opencv\build\include\opencv2\core.hpp(1743,1): warning C4819: The file contains a character that cannot be represented in the current code page (949). Save the file in Unicode format to prevent data loss
+  (compiling source file '/Mission_MFCDlg.cpp')
+  
+C:\opencv\build\include\opencv2\core.hpp(1743,1): warning C4819: The file contains a character that cannot be represented in the current code page (949). Save the file in Unicode format to prevent data loss
+  (compiling source file '/Mission_MFCDlg.cpp')
+  
+  Mission_MFC.vcxproj -> C:\Users\kuhj1\source\repos\Mission_MFC\x64\Debug\Mission_MFC.exe
